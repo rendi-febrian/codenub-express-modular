@@ -1,11 +1,22 @@
-import { Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { {{PascalName}}Service } from './{{kebabName}}.service';
 
 export class {{PascalName}}Controller {
+  public path = '/{{kebabName}}';
+  public router = Router();
   private service: {{PascalName}}Service;
 
   constructor() {
     this.service = new {{PascalName}}Service();
+    this.initializeRoutes();
+  }
+
+  private initializeRoutes() {
+    this.router.get(`${this.path}`, this.getAll);
+    this.router.get(`${this.path}/:id`, this.getById);
+    this.router.post(`${this.path}`, this.create);
+    this.router.put(`${this.path}/:id`, this.update);
+    this.router.delete(`${this.path}/:id`, this.delete);
   }
 
   public getAll = async (req: Request, res: Response) => {

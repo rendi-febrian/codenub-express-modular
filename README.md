@@ -1,18 +1,21 @@
-# codenub-express-modular (cem)
+# CODENUB Express Modular CLI (cem)
 
-> **Scaffold modular, type-safe Express applications with Clean Architecture & Prisma support in seconds.**
+> **The Ultimate CLI for scalable, type-safe Express.js applications with Clean Architecture.**
 
-`cem` is a powerful CLI tool designed to bring the structure and scalability of NestJS to the flexibility of Express. It enforces a modular Clean Architecture, integrates Prisma ORM seamlessly, and automates repetitive boilerplate.
+`cem` allows you to scaffold enterprise-grade Express applications in seconds, enforcing a modular Clean Architecture similar to NestJS but without the heavy runtime overhead. It comes packed with Prisma ORM, Docker support, and Swagger documentation capabilities out of the box.
 
-## Key Features
+## 🚀 Key Features
 
-*   **Modular Architecture**: Automatically generates modules with Controller, Service, Repository, and DTO layers.
-*   **Clean Architecture**: Separation of concerns (Presentation, Application, Domain, Infrastructure).
-*   **Prisma Integration**: First-class support for Prisma ORM (`cem prisma:init`, `cem prisma:generate`).
-*   **Type-Safe**: Full TypeScript support out of the box.
-*   **Lightweight**: No heavy runtime framework overhead, just pure Express with better structure.
+*   **Modular Architecture**: Automatically organizes code into Modules (Controller, Service, Repository, DTO).
+*   **Clean Architecture**: Strict separation of concerns (Presentation, Application, Domain, Infrastructure).
+*   **Developer Experience**: Interactive CLI, Smart Argument Detection, and Custom Path support.
+*   **Prisma Integration**: First-class support for Database ORM.
+*   **Production Ready**: Built-in support for **Docker** and **Swagger** setup.
+*   **Standard Templates**: Pre-built templates for Authentication and User Management.
 
-## Installation
+---
+
+## 📦 Installation
 
 Install globally via npm:
 
@@ -26,157 +29,139 @@ Or run directly with `npx`:
 npx codenub-express-modular init my-app
 ```
 
-## Quick Start
+---
 
-### 1. Initialize a New Project
+## ⚡ Quick Start
 
+### 1. Initialize Project
 ```bash
 cem init my-awesome-app
 cd my-awesome-app
 npm install
 ```
 
-This creates a production-ready Express app with the following structure:
-```
-src/
-├── common/         # Shared middlewares, guards, utils
-├── config/         # Environment configuration
-├── modules/        # Feature modules
-│   └── index/      # Default module
-├── app.ts          # App configuration
-└── main.ts         # Entry point
-```
-
-### 2. Setup Prisma
-
-Initialize Prisma and generate the client:
-
+### 2. Setup Database
 ```bash
+# Initialize Prisma
 cem prisma init
+
+# (Optional) Update prisma/schema.prisma then generate client
+cem prisma generate
 ```
 
-### 3. Generate a Resource
-
-Create a new `User` module with all necessary layers:
-
+### 3. Generate Resources
 ```bash
+# Create a User module (Interactive prompt will offer a Standard Template)
 cem create module user
+
+# Create a standalone service with custom path
+cem create service Services/Payment
 ```
 
-## CLI Commands
+### 4. Run Application
+```bash
+npm run dev
+```
 
-### `cem init <projectName>`
-Initializes a new project.
-*   Prompts for name if not provided.
-*   Sets up TypeScript, Express, and folder structure.
+---
 
-### `cem create module <name>`
-Generates a full module structure:
-*   `src/modules/<name>/<name>.controller.ts`
-*   `src/modules/<name>/<name>.service.ts`
-*   `src/modules/<name>/<name>.repository.ts`
-*   `src/modules/<name>/dto/<name>.dto.ts`
-*   **Special Templates**:
-    *   `cem create module user`: Offers Standard User Template (with email/password).
-    *   `cem create module auth`: Offers Standard Auth Template (Login/Register).
+## 🛠️ CLI Commands REFERENCE
 
-### `cem create` (Interactive & Smart)
-*   **No Arguments**: Run `cem create` to follow interactive prompts for everything.
-*   **Smart Detection**: Run `cem create my-feature` -> CLI detects "my-feature" is not a type, so it assumes it's the **Name** and asks for the **Type**.
+### Core Commands
 
-### `cem create service <name>`
+#### `cem init <project-name>`
+Scaffolds a new project with TypeScript, Express, and Clean Architecture structure.
+
+#### `cem create` (Interactive Wizard)
+Run without arguments to start the interactive wizard.
+```bash
+cem create
+# ? What do you want to create? (Module / Service / Repository / Middleware)
+# ? What is the name? ...
+```
+
+#### `cem create module <name>`
+Generates a full feature module including Controller, Service, Repository, DTO, and Test spec.
+*   **Special Trigger**: Using names `user` or `auth` triggers a prompt to use **Standard Templates** (Pre-wired Auth/User logic).
+
+#### `cem create service <name>`
 Generates a standalone Service class.
-*   **Interactive**: Prompts to choose a target module or "Global / Shared".
-*   **Custom Path**: Support direct path input (e.g., `Services/Aws`), casing is preserved for folders.
-*   **Options**:
-    *   `--path <path>`: Specify custom path directly.
+*   **Smart Parsing**: `cem create service Services/Aws` -> `src/Services/aws.service.ts`
+*   **Interactive**: Prompts for target directory (Module, Global, or Custom Path).
 
-### `cem create repository <name>`
+#### `cem create repository <name>`
 Generates a standalone Repository class.
-*   **Interactive**: Prompts to choose a target module or "Global / Shared".
-*   **Custom Path**: Support direct path input (e.g., `Repositories/Order`), casing is preserved for folders.
-*   **Options**:
-    *   `--path <path>`: Specify custom path directly.
 
-### `cem list`
-Displays a tree view of your project's modules and components.
+#### `cem create middleware <name>`
+Generates a Middleware function.
+*   Default location: `src/common/middlewares`
 
-### `cem remove module <name>`
-Safely deletes a module and its contents (with confirmation prompt).
+### Power Features
 
-### `cem doctor`
-Checks your development environment health (Node version, Prisma, config files, etc.).
+#### `cem add docker` 🐳
+Adds containerization support to your project.
+*   Generates `Dockerfile` (Multi-stage build).
+*   Generates `docker-compose.yml` (App + PostgreSQL).
+*   Generates `.dockerignore`.
 
-### `cem prisma init`
-*    Installs `prisma` and `@prisma/client`.
-*    Runs `npx prisma init` to create `prisma/schema.prisma`.
+#### `cem add swagger` 📄
+Adds OpenAPI documentation support.
+*   Installs `swagger-ui-express`.
+*   Generates `src/config/swagger.ts`.
+*   *Note: You must manually mount the Swagger docs in `src/app.ts` after running this.*
 
-### `cem prisma generate`
-*   Runs `npx prisma generate` to update the Prisma Client.
+### Database (Prisma)
 
-## Folder Structure
+#### `cem prisma init`
+Installs Prisma dependencies and initializes schema.
 
-A typical project generated by `cem` looks like this:
+#### `cem prisma generate`
+Runs `prisma generate` to update the client.
+
+### Productivity
+
+#### `cem list`
+Visualizes your project structure (Modules & Components).
+
+#### `cem remove module <name>`
+Safely deletes a module folder.
+
+#### `cem doctor`
+Diagnoses your environment (Node version, Config files, Prisma status).
+
+---
+
+## 📂 Project Structure
+
+A generated `cem` project follows this industry-standard structure:
 
 ```
 my-app/
 ├── src/
-│   ├── common/
-│   ├── config/
-│   ├── modules/
+│   ├── common/             # Shared utilities, middlewares, guards
+│   │   ├── middlewares/
+│   ├── config/             # Environment & Library configs (Swagger, etc.)
+│   ├── modules/            # Feature Modules
 │   │   ├── user/
-│   │   │   ├── dto/
-│   │   │   │   └── user.dto.ts
+│   │   │   ├── dto/        # Data Transfer Objects
 │   │   │   ├── user.controller.ts
+│   │   │   ├── user.service.ts
 │   │   │   ├── user.repository.ts
-│   │   │   └── user.service.ts
+│   │   │   └── user.service.spec.ts
 │   │   └── auth/
-│   ├── app.ts
-│   └── main.ts
-├── dist/
-├── prisma/
-├── package.json
-└── tsconfig.json
+│   ├── app.ts              # Express App Setup
+│   └── main.ts             # Entry Point
+├── prisma/                 # Database Schema
+├── docker-compose.yml
+└── package.json
 ```
 
-## End-to-End Workflow: Creating a User CRUD
+---
 
-1.  **Define Schema**: Edit `prisma/schema.prisma`
-    ```prisma
-    model User {
-      id    String @id @default(uuid())
-      email String @unique
-      name  String
-    }
-    ```
-2.  **Generate Client**:
-    ```bash
-    cem prisma generate
-    ```
-3.  **Create Module**:
-    ```bash
-    cem create module user
-    # Select "Yes" to use Standard User Template
-    ```
-4.  **Wire it up**: The Service and Controller are already pre-wired! Just start the server:
-    ```bash
-    npm run dev
-    ```
+## 🤝 Contributing
 
-## Roadmap
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-*   [x] `create service` independent command
-*   [x] `create repository` independent command
-*   [x] `create middleware` command (Coming soon)
-*   [x] Standard Auth & User Templates
-*   [x] `list` and `remove` commands
-*   [ ] Automated repository generation from Prisma Schema
-*   [ ] `generate crud` from Prisma Schema (Power Feature)
+## 📄 License
 
-## Contributing
-
-Contributions are welcome! Please look at the [CONTRIBUTING.md](CONTRIBUTING.md) file for details.
-
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the **MIT-LICENSE**.

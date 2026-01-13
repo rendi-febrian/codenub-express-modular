@@ -6,11 +6,11 @@ import * as path from 'path';
 
 export const createCommand = new Command('create')
   .description('Generate a new resource')
-  .argument('[type]', 'Type of resource (module, service, repository)')
+  .argument('[type]', 'Type of resource (module, service, repository, middleware)')
   .argument('[name]', 'Name of the resource')
   .option('-p, --path <path>', 'Custom path for generation')
   .action(async (typeStr: string | undefined, nameStr: string | undefined, options: { path?: string }) => {
-    const VALID_TYPES = ['module', 'service', 'repository'];
+    const VALID_TYPES = ['module', 'service', 'repository', 'middleware'];
     let type = typeStr;
     let name = nameStr;
 
@@ -55,8 +55,10 @@ export const createCommand = new Command('create')
       await generateComponent(name, 'service', options.path);
     } else if (type === 'repository') {
       await generateComponent(name, 'repository', options.path);
+    } else if (type === 'middleware') {
+      await generateComponent(name, 'middleware', options.path);
     } else {
-      console.log(chalk.red(`Type ${type} not supported. Try 'module', 'service', or 'repository'.`));
+      console.log(chalk.red(`Type ${type} not supported. Try 'module', 'service', 'repository', or 'middleware'.`));
     }
   });
 
@@ -117,6 +119,9 @@ async function generateModule(name: string, customPath?: string) {
       { tpl: 'service.tpl', out: `${kebabName}.service.ts` },
       { tpl: 'repository.tpl', out: `${kebabName}.repository.ts` },
       { tpl: 'dto.tpl', out: `dto/${kebabName}.dto.ts` },
+      // Tests
+      { tpl: 'test.tpl', out: `${kebabName}.service.spec.ts` },
+      { tpl: 'test.tpl', out: `${kebabName}.repository.spec.ts` },
     ];
 
     for (const file of files) {
@@ -136,7 +141,7 @@ async function generateModule(name: string, customPath?: string) {
   }
 }
 
-async function generateComponent(name: string, type: 'service' | 'repository', customPath?: string) {
+async function generateComponent(name: string, type: 'service' | 'repository' | 'middleware', customPath?: string) {
   let targetDir = '';
   // Default component name is the full name provided
   let componentName = name;
@@ -166,7 +171,8 @@ async function generateComponent(name: string, type: 'service' | 'repository', c
     const modules = fs.readdirSync(modulesPath).filter(f => fs.statSync(path.join(modulesPath, f)).isDirectory());
 
     const GLOBAL_OPTION = 'Global / Shared (src/common/services)';
-    const choices = [GLOBAL_OPTION, ...modules];
+    const CUSTOM_OPTION = 'Custom Path...';
+    const choices = [GLOBAL_OPTION, CUSTOM_OPTION, new inquirer.Separator(), ...modules];
 
     // Ask user to select module
     const { selectedModule } = await inquirer.prompt([
@@ -181,6 +187,18 @@ async function generateComponent(name: string, type: 'service' | 'repository', c
     if (selectedModule === GLOBAL_OPTION) {
       targetDir = path.join(process.cwd(), 'src/common/services');
       if (type === 'repository') targetDir = path.join(process.cwd(), 'src/common/repositories');
+      if (type === 'middleware') targetDir = path.join(process.cwd(), 'src/common/middlewares');
+      await fs.ensureDir(targetDir);
+    } else if (selectedModule === CUSTOM_OPTION) {
+      const { customPathInput } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'customPathInput',
+          message: 'Enter the custom path (e.g. src/integrations/stripe):',
+          validate: (input) => input ? true : 'Path cannot be empty'
+        }
+      ]);
+      targetDir = path.resolve(process.cwd(), customPathInput);
       await fs.ensureDir(targetDir);
     } else {
       targetDir = path.join(modulesPath, selectedModule);
@@ -196,7 +214,9 @@ async function generateComponent(name: string, type: 'service' | 'repository', c
 
   const templatesDir = path.resolve(__dirname, '../templates/module');
   const tplFile = `${type}.tpl`;
-  const outFile = `${kebabName}.${type}.ts`;
+  const outFile = type === 'middleware'
+    ? `${kebabName}.middleware.ts`
+    : `${kebabName}.${type}.ts`;
 
   try {
     const tplContent = await fs.readFile(path.join(templatesDir, tplFile), 'utf-8');
@@ -213,6 +233,15 @@ async function generateComponent(name: string, type: 'service' | 'repository', c
     await fs.writeFile(outPath, content);
     console.log(chalk.green(`Successfully created ${outFile}`));
     console.log(chalk.gray(`Path: ${outPath}`));
+
+    // Generate Test File (Optional but recommended)
+    if (type === 'service' || type === 'repository') {
+      const testTpl = await fs.readFile(path.join(templatesDir, 'test.tpl'), 'utf-8');
+      const testContent = testTpl.replace(/{{PascalName}}/g, pascalName);
+      const testFile = `${kebabName}.${type}.spec.ts`;
+      await fs.writeFile(path.join(targetDir, testFile), testContent);
+      console.log(chalk.green(`  Created ${testFile}`));
+    }
 
   } catch (error) {
     console.error(chalk.red(`Failed to generate ${type}.`), error);

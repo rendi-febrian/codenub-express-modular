@@ -1,11 +1,22 @@
-import { Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { UserService } from './user.service';
 
 export class UserController {
+  public path = '/users';
+  public router = Router();
   private service: UserService;
 
   constructor() {
     this.service = new UserService();
+    this.initializeRoutes();
+  }
+
+  private initializeRoutes() {
+    this.router.get(`${this.path}`, this.getAll);
+    this.router.get(`${this.path}/:id`, this.getById);
+    this.router.post(`${this.path}`, this.create);
+    this.router.put(`${this.path}/:id`, this.update);
+    this.router.delete(`${this.path}/:id`, this.delete);
   }
 
   public getAll = async (req: Request, res: Response) => {

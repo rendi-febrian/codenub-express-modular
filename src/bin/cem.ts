@@ -17,6 +17,7 @@ program
 import { listCommand } from '../commands/list.cmd';
 import { removeCommand } from '../commands/remove.cmd';
 import { doctorCommand } from '../commands/doctor.cmd';
+import { addCommand } from '../commands/add.cmd';
 
 // Register commands
 program.addCommand(initCommand);
@@ -25,5 +26,6 @@ program.addCommand(prismaCommand);
 program.addCommand(listCommand);
 program.addCommand(removeCommand);
 program.addCommand(doctorCommand);
+program.addCommand(addCommand);
 
 program.parse(process.argv);
