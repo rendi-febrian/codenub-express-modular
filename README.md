@@ -76,6 +76,24 @@ Generates a full module structure:
 *   `src/modules/<name>/<name>.service.ts`
 *   `src/modules/<name>/<name>.repository.ts`
 *   `src/modules/<name>/dto/<name>.dto.ts`
+*   **Special Templates**:
+    *   `cem create module user`: Offers Standard User Template (with email/password).
+    *   `cem create module auth`: Offers Standard Auth Template (Login/Register).
+
+### `cem create service <name>`
+Generates a standalone Service class and prompts to attach it to an existing module.
+
+### `cem create repository <name>`
+Generates a standalone Repository class and prompts to attach it to an existing module.
+
+### `cem list`
+Displays a tree view of your project's modules and components.
+
+### `cem remove module <name>`
+Safely deletes a module and its contents (with confirmation prompt).
+
+### `cem doctor`
+Checks your development environment health (Node version, Prisma, config files, etc.).
 
 ### `cem prisma init`
 *    Installs `prisma` and `@prisma/client`.
@@ -126,33 +144,22 @@ my-app/
 3.  **Create Module**:
     ```bash
     cem create module user
+    # Select "Yes" to use Standard User Template
     ```
-4.  **Implement Repository** (`src/modules/user/user.repository.ts`):
-    ```typescript
-    import { PrismaClient } from '@prisma/client';
-    const prisma = new PrismaClient();
-
-    export class UserRepository {
-      async create(data: any) {
-        return prisma.user.create({ data });
-      }
-      async findAll() {
-        return prisma.user.findMany();
-      }
-    }
-    ```
-5.  **Wire it up**: The Service and Controller are already pre-wired! Just start the server:
+4.  **Wire it up**: The Service and Controller are already pre-wired! Just start the server:
     ```bash
     npm run dev
     ```
 
 ## Roadmap
 
-*   [ ] `create service` independent command
-*   [ ] `create repository` independent command
-*   [ ] `create middleware` command
+*   [x] `create service` independent command
+*   [x] `create repository` independent command
+*   [x] `create middleware` command (Coming soon)
+*   [x] Standard Auth & User Templates
+*   [x] `list` and `remove` commands
 *   [ ] Automated repository generation from Prisma Schema
-*   [ ] Authentication module template (JWT)
+*   [ ] `generate crud` from Prisma Schema (Power Feature)
 
 ## Contributing
 
