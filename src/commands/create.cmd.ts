@@ -6,25 +6,70 @@ import * as path from 'path';
 
 export const createCommand = new Command('create')
   .description('Generate a new resource')
-  .argument('<type>', 'Type of resource (module, service, repository)')
-  .argument('<name>', 'Name of the resource')
-  .action(async (type: string, name: string) => {
+  .argument('[type]', 'Type of resource (module, service, repository)')
+  .argument('[name]', 'Name of the resource')
+  .option('-p, --path <path>', 'Custom path for generation')
+  .action(async (typeStr: string | undefined, nameStr: string | undefined, options: { path?: string }) => {
+    const VALID_TYPES = ['module', 'service', 'repository'];
+    let type = typeStr;
+    let name = nameStr;
+
+    // Smart detection: If type provided is NOT in valid list, assume it is the name
+    if (type && !VALID_TYPES.includes(type)) {
+      name = type;
+      type = undefined; // Reset type to force prompt
+    }
+
+    if (!type) {
+      const answer = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'type',
+          message: name
+            ? `What do you want to create named "${name}"?`
+            : 'What do you want to create?',
+          choices: VALID_TYPES
+        }
+      ]);
+      type = answer.type;
+    }
+
+    if (!name) {
+      const answer = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'name',
+          message: `What is the name of the ${type}?`,
+          validate: (input) => input ? true : 'Name cannot be empty'
+        }
+      ]);
+      name = answer.name;
+    }
+
+    // Safety check
+    if (!type || !name) return;
+
     if (type === 'module') {
-      await generateModule(name);
+      await generateModule(name, options.path);
     } else if (type === 'service') {
-      await generateComponent(name, 'service');
+      await generateComponent(name, 'service', options.path);
     } else if (type === 'repository') {
-      await generateComponent(name, 'repository');
+      await generateComponent(name, 'repository', options.path);
     } else {
       console.log(chalk.red(`Type ${type} not supported. Try 'module', 'service', or 'repository'.`));
     }
   });
 
-async function generateModule(name: string) {
+async function generateModule(name: string, customPath?: string) {
   const kebabName = toKebabCase(name);
   const pascalName = toPascalCase(name);
 
-  const targetDir = path.join(process.cwd(), 'src/modules', kebabName);
+  // If custom path is provided, use it directly. Otherwise use src/modules
+  const baseDir = customPath
+    ? path.resolve(process.cwd(), customPath)
+    : path.join(process.cwd(), 'src/modules');
+
+  const targetDir = customPath ? baseDir : path.join(baseDir, kebabName);
 
   if (fs.existsSync(targetDir)) {
     console.error(chalk.red(`Module ${name} already exists.`));
@@ -91,39 +136,63 @@ async function generateModule(name: string) {
   }
 }
 
-async function generateComponent(name: string, type: 'service' | 'repository') {
-  const kebabName = toKebabCase(name);
-  const pascalName = toPascalCase(name);
+async function generateComponent(name: string, type: 'service' | 'repository', customPath?: string) {
+  let targetDir = '';
+  // Default component name is the full name provided
+  let componentName = name;
 
-  // Find available modules
-  const modulesPath = path.join(process.cwd(), 'src/modules');
-  if (!fs.existsSync(modulesPath)) {
-    console.error(chalk.red('Error: src/modules directory not found. Are you in the root of the project?'));
-    return;
-  }
+  // Check if name contains path separators (e.g. Services/AwsHelper)
+  if (name.includes('/') || name.includes('\\')) {
+    const normalized = name.split(path.sep).join('/');
+    const parts = normalized.split('/');
 
-  const modules = fs.readdirSync(modulesPath).filter(f => fs.statSync(path.join(modulesPath, f)).isDirectory());
+    componentName = parts.pop() || name; // Last part is the component name (e.g. AwsHelper)
+    const dirPath = parts.join('/'); // The rest is the directory path (e.g. Services)
 
-  if (modules.length === 0) {
-    console.error(chalk.red('No modules found. Create a module first using `cem create module <name>`.'));
-    return;
-  }
-
-  // Ask user to select module
-  const { selectedModule } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'selectedModule',
-      message: `Which module does this ${type} belong to?`,
-      choices: modules
+    // Target is src + specified path (Case Sensitive folder name)
+    targetDir = path.join(process.cwd(), 'src', dirPath);
+    await fs.ensureDir(targetDir);
+  } else if (customPath) {
+    targetDir = path.resolve(process.cwd(), customPath);
+    await fs.ensureDir(targetDir);
+  } else {
+    // Find available modules
+    const modulesPath = path.join(process.cwd(), 'src/modules');
+    if (!fs.existsSync(modulesPath)) {
+      console.error(chalk.red('Error: src/modules directory not found. Are you in the root of the project?'));
+      return;
     }
-  ]);
 
-  const targetDir = path.join(modulesPath, selectedModule);
-  if (!fs.existsSync(targetDir)) { // Double check
-    console.error(chalk.red(`Module ${selectedModule} not found.`));
-    return;
+    const modules = fs.readdirSync(modulesPath).filter(f => fs.statSync(path.join(modulesPath, f)).isDirectory());
+
+    const GLOBAL_OPTION = 'Global / Shared (src/common/services)';
+    const choices = [GLOBAL_OPTION, ...modules];
+
+    // Ask user to select module
+    const { selectedModule } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selectedModule',
+        message: `Where should this ${type} belong?`,
+        choices: choices
+      }
+    ]);
+
+    if (selectedModule === GLOBAL_OPTION) {
+      targetDir = path.join(process.cwd(), 'src/common/services');
+      if (type === 'repository') targetDir = path.join(process.cwd(), 'src/common/repositories');
+      await fs.ensureDir(targetDir);
+    } else {
+      targetDir = path.join(modulesPath, selectedModule);
+      if (!fs.existsSync(targetDir)) {
+        console.error(chalk.red(`Module ${selectedModule} not found.`));
+        return;
+      }
+    }
   }
+
+  const kebabName = toKebabCase(componentName);
+  const pascalName = toPascalCase(componentName);
 
   const templatesDir = path.resolve(__dirname, '../templates/module');
   const tplFile = `${type}.tpl`;
@@ -137,12 +206,13 @@ async function generateComponent(name: string, type: 'service' | 'repository') {
 
     const outPath = path.join(targetDir, outFile);
     if (fs.existsSync(outPath)) {
-      console.error(chalk.red(`Error: ${outFile} already exists in module ${selectedModule}.`));
+      console.error(chalk.red(`Error: ${outFile} already exists at ${outPath}.`));
       return;
     }
 
     await fs.writeFile(outPath, content);
-    console.log(chalk.green(`Successfully created ${outFile} in module ${selectedModule}`));
+    console.log(chalk.green(`Successfully created ${outFile}`));
+    console.log(chalk.gray(`Path: ${outPath}`));
 
   } catch (error) {
     console.error(chalk.red(`Failed to generate ${type}.`), error);

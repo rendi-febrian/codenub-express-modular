@@ -80,11 +80,23 @@ Generates a full module structure:
     *   `cem create module user`: Offers Standard User Template (with email/password).
     *   `cem create module auth`: Offers Standard Auth Template (Login/Register).
 
+### `cem create` (Interactive & Smart)
+*   **No Arguments**: Run `cem create` to follow interactive prompts for everything.
+*   **Smart Detection**: Run `cem create my-feature` -> CLI detects "my-feature" is not a type, so it assumes it's the **Name** and asks for the **Type**.
+
 ### `cem create service <name>`
-Generates a standalone Service class and prompts to attach it to an existing module.
+Generates a standalone Service class.
+*   **Interactive**: Prompts to choose a target module or "Global / Shared".
+*   **Custom Path**: Support direct path input (e.g., `Services/Aws`), casing is preserved for folders.
+*   **Options**:
+    *   `--path <path>`: Specify custom path directly.
 
 ### `cem create repository <name>`
-Generates a standalone Repository class and prompts to attach it to an existing module.
+Generates a standalone Repository class.
+*   **Interactive**: Prompts to choose a target module or "Global / Shared".
+*   **Custom Path**: Support direct path input (e.g., `Repositories/Order`), casing is preserved for folders.
+*   **Options**:
+    *   `--path <path>`: Specify custom path directly.
 
 ### `cem list`
 Displays a tree view of your project's modules and components.
