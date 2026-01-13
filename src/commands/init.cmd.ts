@@ -58,10 +58,8 @@ export const initCommand = new Command('init')
       await fs.ensureDir(projectPath);
 
       // Path to templates
-      // Note: In production (compiled), templates will be in dist/templates. 
-      // Development: src/templates. We need to handle this resolution.
-      // A robust way is to check both or assume standard build structure.
-      const templatePath = path.resolve(__dirname, '../../templates/project');
+      // In both src (dev) and dist (prod), templates are one level up from commands
+      const templatePath = path.resolve(__dirname, '../templates/project');
 
       // Copy templates
       await fs.copy(templatePath, projectPath);

@@ -32,7 +32,7 @@ async function generateModule(name: string) {
     await fs.ensureDir(targetDir);
     await fs.ensureDir(path.join(targetDir, 'dto'));
 
-    const templatesDir = path.resolve(__dirname, '../../templates/module');
+    const templatesDir = path.resolve(__dirname, '../templates/module');
 
     // Files to generate
     const files = [

@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name('cem')
   .description('CODENUB Express Modular CLI')
-  .version('0.0.1');
+  .version('1.0.0');
 
 // Register commands
 program.addCommand(initCommand);
