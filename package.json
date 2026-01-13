@@ -1,0 +1,36 @@
+{
+  "name": "codenub-express-modular",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "bin": {
+    "cem": "./dist/bin/cem.js"
+  },
+  "scripts": {
+    "build": "tsc && ts-node scripts/copy-templates.ts",
+    "start": "node dist/bin/cem.js",
+    "dev": "ts-node src/bin/cem.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^14.0.2",
+    "figlet": "^1.9.4",
+    "fs-extra": "^11.3.3",
+    "handlebars": "^4.7.8",
+    "inquirer": "^8.2.7",
+    "ora": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/figlet": "^1.7.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.9",
+    "@types/node": "^25.0.7",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
