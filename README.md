@@ -1,167 +1,155 @@
-# CODENUB Express Modular CLI (cem)
+<p align="center">
+  <img src="https://img.shields.io/npm/v/codenub-express-modular?style=for-the-badge&color=blue" alt="Version" />
+  <img src="https://img.shields.io/npm/l/codenub-express-modular?style=for-the-badge&color=green" alt="License" />
+  <img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=for-the-badge" alt="Maintained" />
+</p>
 
-> **The Ultimate CLI for scalable, type-safe Express.js applications with Clean Architecture.**
+<h1 align="center">CODENUB Express Modular (CEM)</h1>
 
-`cem` allows you to scaffold enterprise-grade Express applications in seconds, enforcing a modular Clean Architecture similar to NestJS but without the heavy runtime overhead. It comes packed with Prisma ORM, Docker support, and Swagger documentation capabilities out of the box.
+<p align="center">
+  <b>The Enterprise-Grade CLI for Node.js & Express</b><br>
+  <i>Build scalable, type-safe, and modular applications in seconds.</i>
+</p>
 
-## 🚀 Key Features
+<hr />
 
-*   **Modular Architecture**: Automatically organizes code into Modules (Controller, Service, Repository, DTO).
-*   **Clean Architecture**: Strict separation of concerns (Presentation, Application, Domain, Infrastructure).
-*   **Developer Experience**: Interactive CLI, Smart Argument Detection, and Custom Path support.
-*   **Prisma Integration**: First-class support for Database ORM.
-*   **Production Ready**: Built-in support for **Docker** and **Swagger** setup.
-*   **Standard Templates**: Pre-built templates for Authentication and User Management.
+## 🌟 Introduction
+
+**CEM** is not just a generator; it's a complete **Development Ecosystem**.
+It bridges the gap between the simplicity of Express.js and the structure of NestJS.
+
+**Why developers love CEM:**
+*   **Zero Boilerplate**: Skip the setup. Get a running app in 10 seconds.
+*   **Clean Architecture**: Enforced modular design (Service-Repository Pattern).
+*   **Production Ready**: Comes with **Docker**, **Prisma**, **Swagger**, **Helmet**, and **CORS**.
+*   **Type-Safe**: Built entirely on TypeScript.
 
 ---
 
 ## 📦 Installation
 
-Install globally via npm:
+You have two options to use CEM.
 
+### Option 1: Global Installation (Recommended)
+Install it once, use it everywhere on your machine.
 ```bash
 npm install -g codenub-express-modular
 ```
 
-Or run directly with `npx`:
-
+### Option 2: On-Demand (NPX)
+Run without installing. Perfect for testing or one-time use.
 ```bash
-npx codenub-express-modular init my-app
+npx codenub-express-modular <command>
 ```
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Quick Start Guide
 
-### 1. Initialize Project
+Go from zero to running API in 3 steps.
+
+### Step 1: Initialize Project
+Create a new project folder with the entire stack set up.
 ```bash
-cem init my-awesome-app
-cd my-awesome-app
+cem init my-app
+```
+
+### Step 2: Install & Setup
+Enter the folder and install dependencies.
+```bash
+cd my-app
 npm install
-```
-
-### 2. Setup Database
-```bash
-# Initialize Prisma
 cem prisma init
-
-# (Optional) Update prisma/schema.prisma then generate client
-cem prisma generate
 ```
 
-### 3. Generate Resources
-```bash
-# Create a User module (Interactive prompt will offer a Standard Template)
-cem create module user
-
-# Create a standalone service with custom path
-cem create service Services/Payment
-```
-
-### 4. Run Application
+### Step 3: Launch!
+Start the development server.
 ```bash
 npm run dev
 ```
+> **Your App is Live:** `http://localhost:3000`
+> **API Docs are Live:** `http://localhost:3000/docs`
 
 ---
 
-## 🛠️ CLI Commands REFERENCE
+## 💎 Features Deep Dive
 
-### Core Commands
+### 1. The `create` Workflow
+Stop copying and pasting files. Generate them.
 
-#### `cem init <project-name>`
-Scaffolds a new project with TypeScript, Express, and Clean Architecture structure.
+*   **Modules**: Creates Controller, Service, Repository, DTO, and Test files.
+    ```bash
+    cem create module product
+    ```
+*   **Services / Repositories**: Create standalone components.
+    ```bash
+    cem create service Services/EmailSender
+    ```
 
-#### `cem create` (Interactive Wizard)
-Run without arguments to start the interactive wizard.
-```bash
-cem create
-# ? What do you want to create? (Module / Service / Repository / Middleware)
-# ? What is the name? ...
-```
+> **� Power Tip**: Try creating a module named `user` or `auth`.
+> CEM will detect this and offer to **pre-fill authentication logic** (Login, Register, JWT, Password Hashing)!
 
-#### `cem create module <name>`
-Generates a full feature module including Controller, Service, Repository, DTO, and Test spec.
-*   **Special Trigger**: Using names `user` or `auth` triggers a prompt to use **Standard Templates** (Pre-wired Auth/User logic).
+### 2. Zero-Config Swagger
+Documentation is critical but tedious. CEM solves this with **Auto-Swagger**.
 
-#### `cem create service <name>`
-Generates a standalone Service class.
-*   **Smart Parsing**: `cem create service Services/Aws` -> `src/Services/aws.service.ts`
-*   **Interactive**: Prompts for target directory (Module, Global, or Custom Path).
+*   **How to Enable**: Run `cem add swagger`.
+*   **How it Works**:
+    1.  CEM configures `swagger-jsdoc`.
+    2.  When you run `cem create module`, the generated files already have JSDoc tags.
+    3.  Your API documentation updates automatically as you code!
 
-#### `cem create repository <name>`
-Generates a standalone Repository class.
+### 3. Docker Ecosystem
+Deploying to production? We got you covered.
 
-#### `cem create middleware <name>`
-Generates a Middleware function.
-*   Default location: `src/common/middlewares`
+*   **Command**: `cem add docker`
+*   **Database Choice**: The CLI will ask:
+    *   `PostgreSQL` (Default)
+    *   `MySQL`
+    *   `SQLite`
+*   **Output**: Generates a production-optimized `Dockerfile` (multistage build) and a tailored `docker-compose.yml`.
 
-### Power Features
+### 4. Database Management
+CEM creates a wrapper around Prisma for easier memory.
 
-#### `cem add docker` 🐳
-Adds containerization support to your project.
-*   Generates `Dockerfile` (Multi-stage build).
-*   Generates `docker-compose.yml` (App + PostgreSQL).
-*   Generates `.dockerignore`.
-
-#### `cem add swagger` 📄
-Adds OpenAPI documentation support.
-*   Installs `swagger-ui-express`.
-*   Generates `src/config/swagger.ts`.
-*   *Note: You must manually mount the Swagger docs in `src/app.ts` after running this.*
-
-### Database (Prisma)
-
-#### `cem prisma init`
-Installs Prisma dependencies and initializes schema.
-
-#### `cem prisma generate`
-Runs `prisma generate` to update the client.
-
-### Productivity
-
-#### `cem list`
-Visualizes your project structure (Modules & Components).
-
-#### `cem remove module <name>`
-Safely deletes a module folder.
-
-#### `cem doctor`
-Diagnoses your environment (Node version, Config files, Prisma status).
+*   `cem prisma init`: Sets up schema and client.
+*   `cem prisma generate`: Refreshes your client after schema changes.
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Architecture
 
-A generated `cem` project follows this industry-standard structure:
+We follow the **Service-Repository Pattern** to keep your code clean and testable.
 
 ```
-my-app/
-├── src/
-│   ├── common/             # Shared utilities, middlewares, guards
-│   │   ├── middlewares/
-│   ├── config/             # Environment & Library configs (Swagger, etc.)
-│   ├── modules/            # Feature Modules
-│   │   ├── user/
-│   │   │   ├── dto/        # Data Transfer Objects
-│   │   │   ├── user.controller.ts
-│   │   │   ├── user.service.ts
-│   │   │   ├── user.repository.ts
-│   │   │   └── user.service.spec.ts
-│   │   └── auth/
-│   ├── app.ts              # Express App Setup
-│   └── main.ts             # Entry Point
-├── prisma/                 # Database Schema
-├── docker-compose.yml
-└── package.json
+src/
+├── app.ts                  # App Configuration (Middleware, Routes)
+├── server.ts               # Entry Point
+├── common/                 # Global Utilities
+│   ├── middlewares/        # Express Middlewares
+│   └── exceptions/         # Error Handling
+├── config/                 # Environment Configs
+└── modules/                # Feature Modules
+    ├── user/
+    │   ├── dto/            # Data Transfer Objects (Validation)
+    │   ├── user.controller.ts  # Route Handlers
+    │   ├── user.service.ts     # Business Logic
+    │   ├── user.repository.ts  # Database Queries
+    │   └── user.service.spec.ts # Unit Tests
 ```
 
 ---
 
-## 🤝 Contributing
+## ❓ FAQ
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+**Q: Can I use this with MongoDB?**
+A: Currently, we focus on Relational DBs via Prisma (Postgres, MySQL, SQLite). MongoDB support via Mongoose is on the roadmap!
 
-## 📄 License
+**Q: Is this opinionated?**
+A: Yes. We enforce strict TypeScript and Clean Architecture to ensure your project scales well.
 
-Distributed under the **MIT-LICENSE**.
+---
+
+## 🤝 Community & License
+
+Built with ❤️ by **CODENUB**.
+Licensed under **MIT**. Feel free to use in personal or commercial projects.

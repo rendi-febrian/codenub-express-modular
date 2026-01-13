@@ -1,6 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { {{PascalName}}Service } from './{{kebabName}}.service';
 
+/**
+ * @swagger
+ * tags:
+ *   name: {{PascalName}}
+ *   description: {{PascalName}} management
+ */
 export class {{PascalName}}Controller {
   public path = '/{{kebabName}}';
   public router = Router();
@@ -19,6 +25,16 @@ export class {{PascalName}}Controller {
     this.router.delete(`${this.path}/:id`, this.delete);
   }
 
+  /**
+   * @swagger
+   * /{{kebabName}}:
+   *   get:
+   *     summary: Get all {{kebabName}}s
+   *     tags: [{{PascalName}}]
+   *     responses:
+   *       200:
+   *         description: List of {{kebabName}}s
+   */
   public getAll = async (req: Request, res: Response) => {
     try {
       const data = await this.service.findAll();
@@ -28,6 +44,22 @@ export class {{PascalName}}Controller {
     }
   };
 
+  /**
+   * @swagger
+   * /{{kebabName}}/{id}:
+   *   get:
+   *     summary: Get {{kebabName}} by ID
+   *     tags: [{{PascalName}}]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: {{PascalName}} details
+   */
   public getById = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -38,6 +70,22 @@ export class {{PascalName}}Controller {
     }
   };
 
+  /**
+   * @swagger
+   * /{{kebabName}}:
+   *   post:
+   *     summary: Create new {{kebabName}}
+   *     tags: [{{PascalName}}]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/Create{{PascalName}}Dto'
+   *     responses:
+   *       201:
+   *         description: {{PascalName}} created
+   */
   public create = async (req: Request, res: Response) => {
     try {
       const data = await this.service.create(req.body);
@@ -47,6 +95,28 @@ export class {{PascalName}}Controller {
     }
   };
 
+  /**
+   * @swagger
+   * /{{kebabName}}/{id}:
+   *   put:
+   *     summary: Update {{kebabName}}
+   *     tags: [{{PascalName}}]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/Update{{PascalName}}Dto'
+   *     responses:
+   *       200:
+   *         description: {{PascalName}} updated
+   */
   public update = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -57,6 +127,22 @@ export class {{PascalName}}Controller {
     }
   };
 
+  /**
+   * @swagger
+   * /{{kebabName}}/{id}:
+   *   delete:
+   *     summary: Delete {{kebabName}}
+   *     tags: [{{PascalName}}]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: {{PascalName}} deleted
+   */
   public delete = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;

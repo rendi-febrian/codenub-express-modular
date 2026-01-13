@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
+import inquirer from 'inquirer';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
@@ -16,15 +17,33 @@ export const addCommand = new Command('add')
     }
   });
 
+
+
 async function addDocker() {
   console.log(chalk.blue('Adding Docker support...'));
 
   const templatesDir = path.resolve(__dirname, '../templates/docker');
   const targetDir = process.cwd();
 
-  const files = ['Dockerfile', 'docker-compose.yml', '.dockerignore'];
+  // Prompt for Database Type
+  const { dbType } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'dbType',
+      message: 'Select the database for Docker setup:',
+      choices: [
+        { name: 'PostgreSQL', value: 'postgres' },
+        { name: 'MySQL', value: 'mysql' },
+        { name: 'SQLite', value: 'sqlite' },
+      ],
+      default: 'postgres'
+    }
+  ]);
+
+  const files = ['Dockerfile', '.dockerignore'];
 
   try {
+    // 1. Copy Dockerfile & .dockerignore
     for (const file of files) {
       const content = await fs.readFile(path.join(templatesDir, file), 'utf-8');
       const targetPath = path.join(targetDir, file);
@@ -38,6 +57,18 @@ async function addDocker() {
       console.log(chalk.green(`Created ${file}`));
     }
 
+    // 2. Copy Specific Docker Compose
+    const composeTemplate = `docker-compose.${dbType}.yml`;
+    const composeTarget = 'docker-compose.yml';
+
+    if (fs.existsSync(path.join(targetDir, composeTarget))) {
+      console.warn(chalk.yellow(`Skipped: ${composeTarget} already exists.`));
+    } else {
+      const composeContent = await fs.readFile(path.join(templatesDir, composeTemplate), 'utf-8');
+      await fs.writeFile(path.join(targetDir, composeTarget), composeContent);
+      console.log(chalk.green(`Created ${composeTarget} (${dbType})`));
+    }
+
     console.log(chalk.green('\nDocker support added successfully! 🐳'));
     console.log(chalk.white('Run: docker-compose up --build'));
 
@@ -45,6 +76,7 @@ async function addDocker() {
     console.error(chalk.red('Failed to add Docker support.'), error);
   }
 }
+
 
 async function addSwagger() {
   console.log(chalk.blue('Adding Swagger support...'));
@@ -60,16 +92,18 @@ async function addSwagger() {
   // Need to detect package manager (default to npm)
   const installCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
-  const installProcess = spawn(installCmd, ['install', 'swagger-ui-express', '--save'], { stdio: 'inherit', cwd: targetDir });
+  // Install runtime dependencies
+  const installProcess = spawn(installCmd, ['install', 'swagger-ui-express', 'swagger-jsdoc', '--save'], { stdio: 'inherit', cwd: targetDir });
 
   await new Promise<void>((resolve, reject) => {
     installProcess.on('close', (code: number | null) => {
       if (code === 0) resolve();
-      else reject(new Error('Failed to install swagger-ui-express'));
+      else reject(new Error('Failed to install dependencies'));
     });
   });
 
-  const installDevProcess = spawn(installCmd, ['install', '@types/swagger-ui-express', '--save-dev'], { stdio: 'inherit', cwd: targetDir });
+  // Install dev dependencies
+  const installDevProcess = spawn(installCmd, ['install', '@types/swagger-ui-express', '@types/swagger-jsdoc', '--save-dev'], { stdio: 'inherit', cwd: targetDir });
 
   await new Promise<void>((resolve, reject) => {
     installDevProcess.on('close', (code: number | null) => {
