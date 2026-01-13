@@ -7,10 +7,12 @@ import { prismaCommand } from '../commands/prisma.cmd';
 
 const program = new Command();
 
+const packageJson = require('../../package.json');
+
 program
   .name('cem')
   .description('CODENUB Express Modular CLI')
-  .version('1.0.0');
+  .version(packageJson.version);
 
 // Register commands
 program.addCommand(initCommand);
