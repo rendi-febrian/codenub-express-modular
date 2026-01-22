@@ -28,12 +28,39 @@ export const initCommand = new Command('init')
       projectName = answers.name;
     }
 
-    const projectPath = path.join(process.cwd(), projectName);
+    let projectPath: string;
+    let displayProjectName: string;
 
-    // Check if directory exists
-    if (fs.existsSync(projectPath)) {
-      console.error(chalk.red(`Error: Directory ${projectName} already exists.`));
-      process.exit(1);
+    if (projectName === '.') {
+      projectPath = process.cwd();
+      displayProjectName = path.basename(projectPath);
+
+      // Check if directory is empty
+      const files = await fs.readdir(projectPath);
+      if (files.length > 0) {
+        const { confirmOverwrite } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'confirmOverwrite',
+            message: chalk.yellow(`Directory is not empty. Continue anyway?`),
+            default: false,
+          },
+        ]);
+
+        if (!confirmOverwrite) {
+          console.log(chalk.yellow('Operation cancelled.'));
+          process.exit(0);
+        }
+      }
+    } else {
+      projectPath = path.join(process.cwd(), projectName);
+      displayProjectName = projectName;
+
+      // Check if directory exists
+      if (fs.existsSync(projectPath)) {
+        console.error(chalk.red(`Error: Directory ${projectName} already exists.`));
+        process.exit(1);
+      }
     }
 
     // Confirm creation
@@ -41,7 +68,7 @@ export const initCommand = new Command('init')
       {
         type: 'confirm',
         name: 'confirm',
-        message: `Create a new project in ${chalk.cyan(projectPath)}?`,
+        message: `Initialize a new project in ${chalk.cyan(projectPath)}?`,
         default: true,
       },
     ]);
@@ -67,7 +94,7 @@ export const initCommand = new Command('init')
       // Update package.json with project name
       const packageJsonPath = path.join(projectPath, 'package.json');
       const packageJson = await fs.readJson(packageJsonPath);
-      packageJson.name = projectName;
+      packageJson.name = displayProjectName;
       await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
 
       // Update .gitignore (renaming .npmignore or creating new)
@@ -80,10 +107,12 @@ coverage
 `;
       await fs.writeFile(path.join(projectPath, '.gitignore'), gitignoreContent.trim());
 
-      spinner.succeed(chalk.green(`Project ${projectName} created successfully!`));
+      spinner.succeed(chalk.green(`Project ${displayProjectName} initialized successfully!`));
 
       console.log('\nNext steps:');
-      console.log(chalk.cyan(`  cd ${projectName}`));
+      if (projectName !== '.') {
+        console.log(chalk.cyan(`  cd ${projectName}`));
+      }
       console.log(chalk.cyan(`  npm install`));
       console.log(chalk.cyan(`  npm run dev`));
 
