@@ -90,10 +90,14 @@ async function addSwagger() {
   const { spawn } = require('child_process');
 
   // Need to detect package manager (default to npm)
-  const installCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const installCmd = 'npm';
 
   // Install runtime dependencies
-  const installProcess = spawn(installCmd, ['install', 'swagger-ui-express', 'swagger-jsdoc', '--save'], { stdio: 'inherit', cwd: targetDir });
+  const installProcess = spawn(installCmd, ['install', 'swagger-ui-express', 'swagger-jsdoc', '--save'], {
+    stdio: 'inherit',
+    cwd: targetDir,
+    shell: true
+  });
 
   await new Promise<void>((resolve, reject) => {
     installProcess.on('close', (code: number | null) => {
@@ -103,7 +107,11 @@ async function addSwagger() {
   });
 
   // Install dev dependencies
-  const installDevProcess = spawn(installCmd, ['install', '@types/swagger-ui-express', '@types/swagger-jsdoc', '--save-dev'], { stdio: 'inherit', cwd: targetDir });
+  const installDevProcess = spawn(installCmd, ['install', '@types/swagger-ui-express', '@types/swagger-jsdoc', '--save-dev'], {
+    stdio: 'inherit',
+    cwd: targetDir,
+    shell: true
+  });
 
   await new Promise<void>((resolve, reject) => {
     installDevProcess.on('close', (code: number | null) => {
